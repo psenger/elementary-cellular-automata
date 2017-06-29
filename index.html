@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>Elementary Cellular Automata</title>
+        <style>
+            .row div {
+                height: 5px;
+                width: 5px;
+                margin: 2px;
+                display: inline-block;
+            }
+            .row div.active {
+                background-color: red;
+            }
+            .row div.inactive {
+                background-color: #99ccff;
+            }
+        </style>
+    </head>
+    <body>
+        <main>
+            <h1>Elementary Cellular Automata</h1>
+            <a href="http://atlas.wolfram.com/01/01/73/">based on rule 73</a>
+            <div class="automaton">
+                <div class="row"></div>
+            </div>
+        </main>
+        <script>
+          let randomBinary = () => {
+            let max = 1,
+                min = 0;
+            return Math.floor(Math.random() * ( max - min + 1 ));
+          };
+
+          for (let i = 0; i < 100; i++) {
+            let div = document.createElement('div');
+            document.querySelector('.row').appendChild(div);
+          }
+
+          let randomizeRow = (rowDiv) => {
+            for (let i = 0; i < rowDiv.childNodes.length; i++) {
+              let div = rowDiv.childNodes[i];
+              div.classList.add(randomBinary() ? 'inactive' : 'active');
+            }
+          };
+
+          randomizeRow(document.querySelector('.row'));
+
+
+          let processRow = (rowDiv, parentRow) => {
+            for (let i = 0; i < rowDiv.childNodes.length; i++) {
+              let target = rowDiv.childNodes[i];
+              let prevSelf = parentRow.childNodes[i];
+              let leftSibling = prevSelf.previousElementSibling || parentRow.childNodes[parentRow.childNodes.length - 1];
+              let rightSibling = prevSelf.nextElementSibling    || parentRow.childNodes[0];
+//              console.log('leftSibling', leftSibling);
+//              console.log('prevSelf', prevSelf);
+//              console.log('rightSibling', rightSibling);
+
+              if (isActive(leftSibling) && isActive(prevSelf) && isActive(rightSibling)) { // first rule
+                setIsActive(target, false);
+              } else if (isActive(leftSibling) && isActive(prevSelf) && !isActive(rightSibling)) { // second rule
+                setIsActive(target, true);
+              } else if (isActive(leftSibling) && !isActive(prevSelf) && isActive(rightSibling)) { // third rule
+                setIsActive(target, false);
+              } else if (isActive(leftSibling) && !isActive(prevSelf) && !isActive(rightSibling)) {  // fourth rule
+                setIsActive(target, false);
+              } else if (!isActive(leftSibling) && isActive(prevSelf) && isActive(rightSibling)) { // fifth rule
+                setIsActive(target, true);
+              } else if (!isActive(leftSibling) && isActive(prevSelf) && !isActive(rightSibling)) { // sixth rule
+                setIsActive(target, false);
+              } else if (isActive(leftSibling) && isActive(prevSelf) && !isActive(rightSibling)) { // seventh rule
+                setIsActive(target, false);
+              } else if (!isActive(leftSibling) && !isActive(prevSelf) && !isActive(rightSibling)) { // eighth rule
+                setIsActive(target, true);
+              }
+            }
+          };
+
+          isActive = (cellDiv) => cellDiv.classList.contains('active');
+          setIsActive = (cellDiv, isActive) => {
+            if ( ! isActive ) {
+              cellDiv.classList.add('active');
+              cellDiv.classList.remove('inactive');
+            } else {
+              cellDiv.classList.remove('active');
+              cellDiv.classList.add('inactive');
+            }
+          }
+
+          let duplicateRow = () => {
+            let allRows = document.querySelectorAll('.row');
+            let lastRow = allRows[allRows.length - 1];
+            let clone = lastRow.cloneNode(true);
+            document
+              .querySelector('.automaton')
+              .appendChild(clone);
+
+            processRow(clone, lastRow);
+          };
+
+          for (let i = 0; i < 200   ; i++) {
+            duplicateRow();
+          }
+
+
+        </script>
+    </body>
+</html>
