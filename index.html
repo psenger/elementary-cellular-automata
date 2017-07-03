@@ -7,19 +7,23 @@
             body * {
                 padding: 0px;
             }
+
             .row {
                 margin: 0px;
                 line-height: 0;
             }
+
             .row div {
                 height: 5px;
                 width: 5px;
                 margin: 1px;
                 display: inline-block;
             }
+
             .row div.active {
                 background-color: red;
             }
+
             .row div.inactive {
                 background-color: #99ccff;
             }
@@ -29,6 +33,8 @@
         <main>
             <h1>Elementary Cellular Automata</h1>
             <a href="http://atlas.wolfram.com/01/01/73/">based on rule 73</a>
+            and
+            <a href="http://atlas.wolfram.com/01/01/126/">based on rule 126</a>
             <div id="automaton">
                 <div class="row"></div>
             </div>
@@ -49,49 +55,41 @@
           };
 
           const seedRow = (rowDiv, state) => {
-            Array.from(rowDiv.childNodes).map( state )
+            Array.from(rowDiv.childNodes).map(state);
           };
 
-
-          const randomSeed = ( div )=> {
-            div.classList.add( randomBinary() ? 'inactive' : 'active');
+          const randomSeed = (div) => {
+            div.classList.add(randomBinary() ? 'inactive' : 'active');
           };
 
-          const centerActiveSeed = ( div, i, arr ) => {
-            const middle = arr.length/2;
-            if ( i === middle ) {
-              div.classList.add( 'active');
+          const centerActiveSeed = (div, i, arr) => {
+            const middle = arr.length / 2;
+            if (i === middle) {
+              div.classList.add('active');
             } else {
-              div.classList.add( 'inactive'  );
+              div.classList.add('inactive');
             }
           };
 
           let checkState = (cellDiv) => cellDiv.classList.contains('active') ? 1 : 0;
 
-          let processRow = (rowDiv, parentRow) => {
+          let processRow = (rowDiv, parentRow, rules) => {
             for (let i = 0; i < rowDiv.childNodes.length; i++) {
               let target = rowDiv.childNodes[i];
               let prevSelf = parentRow.childNodes[i];
               let leftSibling = prevSelf.previousElementSibling || parentRow.childNodes[parentRow.childNodes.length - 1];
-              let rightSibling = prevSelf.nextElementSibling    || parentRow.childNodes[0];
+              let rightSibling = prevSelf.nextElementSibling || parentRow.childNodes[0];
               let check = applyRules.bind(null, target, leftSibling, prevSelf, rightSibling);
-              //  based on rule 73
-              //  http://atlas.wolfram.com/01/01/73/
-              check([1, 1, 1], 0);
-              check([1, 1, 0], 1);
-              check([1, 0, 1], 0);
-              check([1, 0, 0], 0);
-              check([0, 1, 1], 1);
-              check([0, 1, 0], 0);
-              check([0, 0, 1], 0);
-              check([0, 0, 0], 1);
+              rules.map(function (rule) {
+                check(rule.previous, rule.result);
+              });
             }
           };
 
           // needs to be a function, not arrow function because of binding.
-          function applyRules( target, leftSibling, prevSelf, rightSibling, rule, state ) {
-            let result = ( checkState(leftSibling) === rule[0] && checkState(prevSelf) === rule[1] && checkState(rightSibling) === rule[2] )
-            if ( result ) setState(target,state)
+          function applyRules (target, leftSibling, prevSelf, rightSibling, rule, state) {
+            let result = ( checkState(leftSibling) === rule[0] && checkState(prevSelf) === rule[1] && checkState(rightSibling) === rule[2] );
+            if (result) setState(target, state);
           }
 
           const setActive = (cellDiv) => {
@@ -105,50 +103,75 @@
           };
 
           const setState = (cellDiv, state) => {
-            if (state===1) {
-              setActive(cellDiv)
+            if (state === 1) {
+              setActive(cellDiv);
             } else {
-              setInActive(cellDiv)
+              setInActive(cellDiv);
             }
           };
 
-          const duplicateRow = (n, baseDivLocator ) => {
+          const duplicateRow = (n, baseDivLocator, rules) => {
             for (let i = 0; i < n; i++) {
               let allRows = document.querySelectorAll('.row');
               let lastRow = allRows[allRows.length - 1];
               let clone = lastRow.cloneNode(true);
               baseDivLocator().appendChild(clone);
-              processRow(clone, lastRow);
+              processRow(clone, lastRow, rules);
             }
           };
 
           const reset = () => {
             let automaton = document.getElementById('automaton');
-            while(automaton.firstChild) {
+            while (automaton.firstChild) {
               automaton.removeChild(automaton.firstChild);
             }
-            let row  = document.createElement('div');
+            let row = document.createElement('div');
             row.classList.add('row');
             automaton.appendChild(row);
           };
 
-          const randomRowStart = () => {
-            reset();
-            initializeRow(100, () => document.createElement('div'), document.querySelector('.row'));
-            seedRow(document.querySelector('.row'), randomSeed);
-            duplicateRow(200, () => document.getElementById('automaton'));
+          //  based on rule 73
+          //  http://atlas.wolfram.com/01/01/73/
+
+          const rule73 = [
+            { previous: [1, 1, 1], result: 0 },
+            { previous: [1, 1, 0], result: 1 },
+            { previous: [1, 0, 1], result: 0 },
+            { previous: [1, 0, 0], result: 0 },
+            { previous: [0, 1, 1], result: 1 },
+            { previous: [0, 1, 0], result: 0 },
+            { previous: [0, 0, 1], result: 0 },
+            { previous: [0, 0, 0], result: 1 }
+          ];
+
+          //  based on rule 126
+          //  http://atlas.wolfram.com/01/01/126/
+
+          const rule126 = [
+            { previous: [1, 1, 1], result: 0 },
+            { previous: [1, 1, 0], result: 1 },
+            { previous: [1, 0, 1], result: 1 },
+            { previous: [1, 0, 0], result: 1 },
+            { previous: [0, 1, 1], result: 1 },
+            { previous: [0, 1, 0], result: 1 },
+            { previous: [0, 0, 1], result: 1 },
+            { previous: [0, 0, 0], result: 0 }
+          ];
+
+          const genFunction = (seed, rules) => {
+            return () => {
+              reset();
+              initializeRow(100, () => document.createElement('div'), document.querySelector('.row'));
+              seedRow(document.querySelector('.row'), seed);
+              duplicateRow(200, () => document.getElementById('automaton'), rules);
+            };
           };
 
-          const centerRowStart = () => {
-            reset();
-            initializeRow(100, ()=>document.createElement('div'), document.querySelector('.row') );
-            seedRow(document.querySelector('.row'), centerActiveSeed );
-            duplicateRow(200, ()=> document.getElementById('automaton') );
-          };
-
-          centerRowStart();
-          setInterval(randomRowStart,2000);
-          setInterval(centerRowStart,4000);
+          genFunction(centerActiveSeed, rule73)();
+          setInterval(genFunction(randomSeed, rule73), 2000);
+          setInterval(genFunction(centerActiveSeed, rule73), 4000);
+          setInterval(genFunction(randomSeed, rule126), 6000);
+          setInterval(genFunction(centerActiveSeed, rule126), 8000);
 
         </script>
     </body>
